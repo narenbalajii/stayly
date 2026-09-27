@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
+import Providers from '@/components/Providers';
 import { auth } from '@/auth';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -19,9 +20,13 @@ export default async function RootLayout({
   const session = await auth();
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-stone-50 text-stone-900 antialiased pt-20`}>
-        <Navbar session={session} />
-        <main>{children}</main>
+      <body className={`${inter.className} bg-white text-stone-900 antialiased`}>
+        <Providers session={session}>
+          <Navbar />
+          <div className="pt-20">
+            {children}
+          </div>
+        </Providers>
       </body>
     </html>
   );

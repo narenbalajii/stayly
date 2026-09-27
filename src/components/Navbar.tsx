@@ -1,16 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { User, LogOut, Menu, Home, Calendar, LayoutDashboard } from 'lucide-react';
+import { User, LogOut, Menu, Home, Calendar } from 'lucide-react';
 import { useState } from 'react';
-import { signOut } from 'next-auth/react';
-import type { Session } from 'next-auth';
+import { signOut, useSession } from 'next-auth/react';
 
-export default function Navbar({ session }: { session: Session | null }) {
+export default function Navbar() {
+  const { data: session } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // @ts-ignore
+  const role = session?.user?.role as string | undefined;
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-stone-200 transition-all">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-stone-200 transition-all">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between items-center h-20">
           
@@ -33,15 +35,13 @@ export default function Navbar({ session }: { session: Session | null }) {
               </Link>
             )}
 
-            {/* @ts-ignore */}
-            {session?.user?.role === 'HOST' && (
+            {role === 'HOST' && (
               <Link href="/host" className="text-stone-600 font-medium hover:text-[#FF5A5F] transition">
                 Host Dashboard
               </Link>
             )}
             
-            {/* @ts-ignore */}
-            {session?.user?.role === 'ADMIN' && (
+            {role === 'ADMIN' && (
               <Link href="/admin" className="text-stone-600 font-medium hover:text-[#FF5A5F] transition">
                 Admin Panel
               </Link>
@@ -107,7 +107,7 @@ export default function Navbar({ session }: { session: Session | null }) {
       {isMenuOpen && (
         <div className="md:hidden bg-white border-b border-stone-200 px-6 py-4 shadow-lg absolute w-full left-0 top-20">
           <div className="flex flex-col gap-4">
-            <Link href="/properties" className="text-stone-800 font-medium py-2 border-b border-stone-100">Browse Stays</Link>
+            <Link href="/properties" onClick={() => setIsMenuOpen(false)} className="text-stone-800 font-medium py-2 border-b border-stone-100">Browse Stays</Link>
             
             {!session?.user ? (
               <div className="flex flex-col gap-3 pt-2">
@@ -116,14 +116,12 @@ export default function Navbar({ session }: { session: Session | null }) {
               </div>
             ) : (
               <>
-                <Link href="/my-bookings" className="text-stone-800 font-medium py-2 border-b border-stone-100">My Bookings</Link>
-                {/* @ts-ignore */}
-                {session?.user?.role === 'HOST' && (
-                  <Link href="/host" className="text-stone-800 font-medium py-2 border-b border-stone-100">Host Dashboard</Link>
+                <Link href="/my-bookings" onClick={() => setIsMenuOpen(false)} className="text-stone-800 font-medium py-2 border-b border-stone-100">My Bookings</Link>
+                {role === 'HOST' && (
+                  <Link href="/host" onClick={() => setIsMenuOpen(false)} className="text-stone-800 font-medium py-2 border-b border-stone-100">Host Dashboard</Link>
                 )}
-                {/* @ts-ignore */}
-                {session?.user?.role === 'ADMIN' && (
-                  <Link href="/admin" className="text-stone-800 font-medium py-2 border-b border-stone-100">Admin Panel</Link>
+                {role === 'ADMIN' && (
+                  <Link href="/admin" onClick={() => setIsMenuOpen(false)} className="text-stone-800 font-medium py-2 border-b border-stone-100">Admin Panel</Link>
                 )}
                 <button onClick={() => signOut()} className="text-red-600 font-medium py-2 text-left">Log out</button>
               </>
