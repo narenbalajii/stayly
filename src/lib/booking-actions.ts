@@ -3,6 +3,7 @@
 import { db } from '@/lib/db';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 
 export async function createBooking(formData: FormData) {
   const session = await auth();
@@ -66,9 +67,25 @@ export async function createBooking(formData: FormData) {
       checkIn,
       checkOut,
       totalPrice,
-      status: 'CONFIRMED' // Auto-confirming for simplicity as per specs
+      status: 'CONFIRMED' // Auto-confirming for simplicity
     }
   });
 
   redirect('/my-bookings');
+}
+
+export async function cancelBooking(bookingId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error('Not authenticated');
+
+  const booking = await db.booking.findUnique({ where: { id: bookingId } });
+  if (!booking || booking.guestId !== session.user.id) throw new Error('Unauthorized');
+  if (booking.status === 'CANCELLED') throw new Error('Already cancelled');
+
+  await db.booking.update({
+    where: { id: bookingId },
+    data: { status: 'CANCELLED' }
+  });
+
+  revalidatePath('/my-bookings');
 }

@@ -3,6 +3,7 @@
 import { db } from '@/lib/db';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 import { uploadImageBuffer } from './cloudinary';
 
 export async function createProperty(formData: FormData) {
@@ -17,13 +18,13 @@ export async function createProperty(formData: FormData) {
   const type = formData.get('type') as string || 'Apartment';
   const priceRaw = formData.get('pricePerNight') as string;
   const guestsRaw = formData.get('maxGuests') as string;
-  
+
   const pricePerNight = parseFloat(priceRaw);
   const maxGuests = parseInt(guestsRaw) || 2;
-  
+
   const amenitiesRaw = formData.get('amenities') as string;
   const amenities = amenitiesRaw ? amenitiesRaw.split(',').map(a => a.trim()).filter(a => a) : [];
-  
+
   if (!title || !description || !location || isNaN(pricePerNight)) {
     throw new Error('Missing or invalid required fields.');
   }
@@ -77,4 +78,43 @@ export async function createProperty(formData: FormData) {
   }
 
   redirect('/host');
+}
+
+export async function updatePropertyStatus(propertyId: string, status: 'ACTIVE' | 'INACTIVE') {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error('Not authenticated');
+
+  const property = await db.property.findUnique({ where: { id: propertyId } });
+  if (!property || property.hostId !== session.user.id) throw new Error('Unauthorized');
+
+  await db.property.update({
+    where: { id: propertyId },
+    data: { status }
+  });
+
+  revalidatePath('/host');
+}
+
+export async function deleteProperty(propertyId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error('Not authenticated');
+
+  const property = await db.property.findUnique({ where: { id: propertyId } });
+  if (!property || property.hostId !== session.user.id) throw new Error('Unauthorized');
+
+  // Check for active bookings
+  const activeBookings = await db.booking.count({
+    where: {
+      propertyId,
+      status: { in: ['PENDING', 'CONFIRMED'] }
+    }
+  });
+
+  if (activeBookings > 0) {
+    throw new Error('Cannot delete a property with active bookings.');
+  }
+
+  await db.property.delete({ where: { id: propertyId } });
+
+  revalidatePath('/host');
 }
