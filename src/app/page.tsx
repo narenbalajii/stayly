@@ -11,6 +11,18 @@ export default async function HomePage() {
     orderBy: { createdAt: 'desc' }
   });
 
+  // Fetch destination counts dynamically from the database
+  const propertyCountsRaw = await db.property.groupBy({
+    by: ['location'],
+    where: { status: 'ACTIVE' },
+    _count: true
+  });
+
+  const propertyCounts = propertyCountsRaw.reduce((acc, curr) => {
+    acc[curr.location.toLowerCase()] = curr._count;
+    return acc;
+  }, {} as Record<string, number>);
+
   const destinations = [
     { name: 'Goa', image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=500&q=80' },
     { name: 'Bengaluru', image: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=500&q=80' },
@@ -25,7 +37,7 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative h-[85vh] w-full pt-16">
+      <section className="relative h-[85vh] w-full">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img 
@@ -85,15 +97,23 @@ export default async function HomePage() {
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          {destinations.map((dest) => (
-            <Link href={`/properties?location=${dest.name}`} key={dest.name} className="group relative h-48 md:h-64 rounded-2xl overflow-hidden cursor-pointer shadow-sm">
-              <img src={dest.image} alt={dest.name} className="w-full h-full object-cover transition duration-700 group-hover:scale-110" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-              <h3 className="absolute bottom-4 left-4 md:bottom-6 md:left-6 text-white font-bold text-xl md:text-2xl drop-shadow-md">
-                {dest.name}
-              </h3>
-            </Link>
-          ))}
+          {destinations.map((dest) => {
+            const count = propertyCounts[dest.name.toLowerCase()] || 0;
+            return (
+              <Link href={`/properties?location=${dest.name}`} key={dest.name} className="group relative h-48 md:h-64 rounded-2xl overflow-hidden cursor-pointer shadow-sm">
+                <img src={dest.image} alt={dest.name} className="w-full h-full object-cover transition duration-700 group-hover:scale-110" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6">
+                  <h3 className="text-white font-bold text-xl md:text-2xl drop-shadow-md">{dest.name}</h3>
+                  {count > 0 && (
+                    <p className="text-white/80 text-sm font-medium mt-0.5">
+                      {count} {count === 1 ? 'stay' : 'stays'}
+                    </p>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
@@ -108,10 +128,10 @@ export default async function HomePage() {
             View all &rarr;
           </Link>
         </div>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
           {featuredProperties.map((property) => (
-            <PropertyCard 
+            <PropertyCard
               key={property.id}
               id={property.id}
               title={property.title}
@@ -123,7 +143,7 @@ export default async function HomePage() {
             />
           ))}
         </div>
-        
+
         <div className="mt-10 text-center md:hidden">
           <Link href="/properties" className="inline-block border border-stone-300 text-stone-700 font-semibold px-6 py-3 rounded-xl hover:bg-stone-50 transition w-full">
             View all stays
@@ -136,8 +156,9 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-stone-800 tracking-tight">Why book with Stayly?</h2>
+            <p className="text-stone-500 mt-3 text-lg">We make finding your perfect stay easy, safe, and transparent.</p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             <div className="text-center flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm text-[#FF5A5F] mb-6">
@@ -146,7 +167,7 @@ export default async function HomePage() {
               <h3 className="text-xl font-bold text-stone-800 mb-3">Verified stays</h3>
               <p className="text-stone-500 leading-relaxed">Every host and property is carefully vetted to ensure your safety and comfort during your trip.</p>
             </div>
-            
+
             <div className="text-center flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm text-[#FF5A5F] mb-6">
                 <HeartHandshake className="w-8 h-8" />
@@ -154,7 +175,7 @@ export default async function HomePage() {
               <h3 className="text-xl font-bold text-stone-800 mb-3">Trusted hosts</h3>
               <p className="text-stone-500 leading-relaxed">Connect with locals who care about your experience and provide authentic hospitality.</p>
             </div>
-            
+
             <div className="text-center flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm text-[#FF5A5F] mb-6">
                 <Search className="w-8 h-8" />
@@ -169,9 +190,9 @@ export default async function HomePage() {
       {/* Host CTA */}
       <section className="py-24 px-6 max-w-7xl mx-auto">
         <div className="relative rounded-3xl overflow-hidden bg-stone-900">
-          <img 
-            src="https://images.unsplash.com/photo-1556912173-3bb406ef7e77?w=1600&q=80" 
-            alt="Host your home" 
+          <img
+            src="https://images.unsplash.com/photo-1556912173-3bb406ef7e77?w=1600&q=80"
+            alt="Host your home"
             className="absolute inset-0 w-full h-full object-cover opacity-50"
           />
           <div className="relative z-10 px-8 py-20 md:p-24 flex flex-col items-start max-w-2xl">
@@ -216,12 +237,8 @@ export default async function HomePage() {
             </ul>
           </div>
           <div>
-            <div className="text-2xl font-black text-[#FF5A5F] tracking-tighter mb-4">
-              stayly.
-            </div>
-            <p className="text-stone-500 text-sm mb-4">
-              The modern way to discover and book beautiful properties globally.
-            </p>
+            <div className="text-2xl font-black text-[#FF5A5F] tracking-tighter mb-4">stayly.</div>
+            <p className="text-stone-500 text-sm mb-4">The modern way to discover and book beautiful properties globally.</p>
           </div>
         </div>
         <div className="max-w-7xl mx-auto border-t border-stone-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-stone-400 text-sm">
