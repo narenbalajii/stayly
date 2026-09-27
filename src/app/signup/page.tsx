@@ -6,66 +6,97 @@ import Link from 'next/link';
 
 function RegisterButton() {
   const { pending } = useFormStatus();
+  
   return (
-    <button
-      className="mt-4 w-full bg-orange-600 text-white p-3 rounded-md font-semibold hover:bg-orange-700 transition"
-      aria-disabled={pending}
+    <button 
+      type="submit" 
+      disabled={pending}
+      className="w-full bg-[#FF5A5F] text-white font-bold py-4 rounded-xl hover:bg-[#E0484D] transition shadow-md disabled:opacity-70 mt-4"
     >
-      {pending ? 'Signing up...' : 'Sign up'}
+      {pending ? 'Creating account...' : 'Create account'}
     </button>
   );
 }
 
 export default function SignupPage() {
-  const [errorMessage, dispatch] = useFormState(register, undefined);
+  const [errorMessage, formAction] = useFormState(register, undefined);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-stone-50 p-4">
-      <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-sm border border-stone-100">
-        <h1 className="text-2xl font-bold text-stone-800 mb-6 text-center">Create a Stayly Account</h1>
-        <form action={dispatch} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-stone-600 mb-1" htmlFor="name">Full Name</label>
-            <input
-              className="w-full border border-stone-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-orange-500"
-              id="name"
-              type="text"
-              name="name"
-              placeholder="John Doe"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-stone-600 mb-1" htmlFor="email">Email</label>
-            <input
-              className="w-full border border-stone-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-orange-500"
-              id="email"
-              type="email"
-              name="email"
-              placeholder="you@example.com"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-stone-600 mb-1" htmlFor="password">Password</label>
-            <input
-              className="w-full border border-stone-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-orange-500"
-              id="password"
-              type="password"
-              name="password"
-              placeholder="Enter password"
-              required
-              minLength={6}
-            />
-          </div>
-          <RegisterButton />
-          {errorMessage && (
-            <p className="text-sm text-red-500 mt-2 text-center">{errorMessage}</p>
-          )}
-          <div className="text-center mt-4 text-sm text-stone-600">
-            Already have an account? <Link href="/login" className="text-orange-600 hover:underline">Log in</Link>
-          </div>
-        </form>
+    <div className="min-h-screen bg-stone-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-stone-900 tracking-tight">
+          Join Stayly
+        </h2>
+        <p className="mt-2 text-center text-sm text-stone-600">
+          Already have an account?{' '}
+          <Link href="/login" className="font-medium text-[#FF5A5F] hover:text-[#E0484D]">
+            Log in instead
+          </Link>
+        </p>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-10 px-4 shadow-xl border border-stone-100 sm:rounded-3xl sm:px-10">
+          <form action={formAction} className="space-y-5">
+            <div>
+              <label htmlFor="name" className="block text-sm font-bold text-stone-700">
+                Full name
+              </label>
+              <div className="mt-1">
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  required
+                  className="appearance-none block w-full px-4 py-3 border border-stone-300 rounded-xl shadow-sm placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#FF5A5F] focus:border-transparent font-medium text-stone-900"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="email" className="block text-sm font-bold text-stone-700">
+                Email address
+              </label>
+              <div className="mt-1">
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  className="appearance-none block w-full px-4 py-3 border border-stone-300 rounded-xl shadow-sm placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#FF5A5F] focus:border-transparent font-medium text-stone-900"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-bold text-stone-700">
+                Password
+              </label>
+              <div className="mt-1">
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  minLength={6}
+                  className="appearance-none block w-full px-4 py-3 border border-stone-300 rounded-xl shadow-sm placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#FF5A5F] focus:border-transparent font-medium text-stone-900"
+                />
+              </div>
+            </div>
+
+            {errorMessage && (
+              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg font-medium border border-red-100">
+                {errorMessage}
+              </div>
+            )}
+
+            <div>
+              <RegisterButton />
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

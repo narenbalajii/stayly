@@ -46,6 +46,9 @@ model Property {
   description   String
   location      String
   pricePerNight Decimal
+  type          String          @default("Apartment")
+  maxGuests     Int             @default(2)
+  amenities     String[]
   status        PropertyStatus  @default(ACTIVE)
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt

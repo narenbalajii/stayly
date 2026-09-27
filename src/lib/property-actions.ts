@@ -5,20 +5,27 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { uploadImageBuffer } from './cloudinary';
 
-export async function createProperty(prevState: any, formData: FormData) {
+export async function createProperty(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) {
-    return { error: 'Not authenticated' };
+    throw new Error('Not authenticated');
   }
 
   const title = formData.get('title') as string;
   const description = formData.get('description') as string;
   const location = formData.get('location') as string;
+  const type = formData.get('type') as string || 'Apartment';
   const priceRaw = formData.get('pricePerNight') as string;
+  const guestsRaw = formData.get('maxGuests') as string;
+  
   const pricePerNight = parseFloat(priceRaw);
+  const maxGuests = parseInt(guestsRaw) || 2;
+  
+  const amenitiesRaw = formData.get('amenities') as string;
+  const amenities = amenitiesRaw ? amenitiesRaw.split(',').map(a => a.trim()).filter(a => a) : [];
   
   if (!title || !description || !location || isNaN(pricePerNight)) {
-    return { error: 'Missing or invalid required fields.' };
+    throw new Error('Missing or invalid required fields.');
   }
 
   // Handle image uploads
@@ -36,11 +43,10 @@ export async function createProperty(prevState: any, formData: FormData) {
     }
   } catch (error) {
     console.error('Image upload failed:', error);
-    return { error: 'Failed to upload images. Please check your Cloudinary configuration.' };
+    throw new Error('Failed to upload images. Please check your Cloudinary configuration.');
   }
 
   try {
-    // Ensure user has HOST role
     const user = await db.user.findUnique({ where: { id: session.user.id } });
     if (user?.role === 'GUEST') {
       await db.user.update({
@@ -56,6 +62,9 @@ export async function createProperty(prevState: any, formData: FormData) {
         description,
         location,
         pricePerNight,
+        type,
+        maxGuests,
+        amenities,
         status: 'ACTIVE',
         images: {
           create: imageUrls.map(url => ({ imageUrl: url }))
@@ -64,7 +73,7 @@ export async function createProperty(prevState: any, formData: FormData) {
     });
   } catch (error) {
     console.error('Database error:', error);
-    return { error: 'Failed to save property to the database.' };
+    throw new Error('Failed to save property to the database.');
   }
 
   redirect('/host');
