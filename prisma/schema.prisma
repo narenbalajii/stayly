@@ -1,0 +1,84 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Enums
+enum Role {
+  GUEST
+  HOST
+  ADMIN
+}
+
+enum PropertyStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+// Models
+model User {
+  id           String    @id @default(cuid())
+  name         String?
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(GUEST)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  properties   Property[]
+  bookings     Booking[]
+}
+
+model Property {
+  id            String          @id @default(cuid())
+  hostId        String
+  title         String
+  description   String
+  location      String
+  pricePerNight Decimal
+  status        PropertyStatus  @default(ACTIVE)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  host          User            @relation(fields: [hostId], references: [id])
+  images        PropertyImage[]
+  bookings      Booking[]
+
+  @@index([hostId])
+}
+
+model PropertyImage {
+  id         String   @id @default(cuid())
+  propertyId String
+  imageUrl   String
+  createdAt  DateTime @default(now())
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+}
+
+model Booking {
+  id         String        @id @default(cuid())
+  guestId    String
+  propertyId String
+  checkIn    DateTime
+  checkOut   DateTime
+  totalPrice Decimal
+  status     BookingStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  guest      User          @relation(fields: [guestId], references: [id])
+  property   Property      @relation(fields: [propertyId], references: [id])
+
+  @@index([guestId])
+  @@index([propertyId])
+}

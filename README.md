@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Stayly
 
-## Getting Started
+Stayly is a modern Airbnb-style property discovery and booking platform built progressively.
 
-First, run the development server:
+## Stack
+- Next.js (App Router)
+- React
+- TypeScript
+- Tailwind CSS
+- Prisma ORM
+- PostgreSQL (Database)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Architecture
+The application follows a standard full-stack Next.js architecture where both the frontend React components and backend API routes reside in the same repository. Prisma is used to interface with a PostgreSQL database.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Project Structure
+- `app/` - Next.js App Router (pages and API endpoints)
+- `components/` - Reusable React components
+- `lib/` - Shared utilities and libraries (e.g., Prisma client)
+- `prisma/` - Database schema and migrations
+- `public/` - Static assets
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Setup Instructions
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-## Learn More
+2. **Environment Variables**
+   Copy `.env.example` to `.env` and fill in the required values.
+   ```bash
+   cp .env.example .env
+   ```
+   *Note: A live PostgreSQL connection string is required in `.env` under `DATABASE_URL` for the database features to work.*
 
-To learn more about Next.js, take a look at the following resources:
+3. **Database Setup**
+   Once your `.env` is configured with a valid PostgreSQL URL, run the migrations:
+   ```bash
+   npx prisma migrate dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. **Development Server**
+   Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Prisma Commands
+- `npx prisma generate` - Generates the Prisma Client
+- `npx prisma studio` - Opens the visual database browser
+- `npx prisma validate` - Validates the schema file
+- `npx prisma migrate dev` - Applies database schema changes
 
-## Deploy on Vercel
+## Current Implementation Status
+- **Stage 3 & 4 (Foundation):** COMPLETED
+  - Next.js, Tailwind, TypeScript initialized.
+  - Prisma configured with PostgreSQL schema (User, Property, PropertyImage, Booking).
+- **Stage 5+:** Pending
+  - Authentication, Authorization, Booking UI, Host/Admin Dashboards, etc., are planned for future stages.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Future Stages
+Refer to the Master Full-Stack Development Specification for detailed future stages, including Authentication (Auth.js), Host/Guest experiences, and image storage (Cloudinary).
